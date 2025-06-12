@@ -50,11 +50,15 @@ jobs:
           tar -xzf apache-jmeter-5.6.3.tgz
           mv apache-jmeter-5.6.3 jmeter
 
+      - name: Create results directory
+        run: mkdir -p results
+
       - name: Run JMeter Tests
         run: |
           for file in http_request/*.jmx; do
             if [ -f "$file" ]; then
-              ./jmeter/bin/jmeter -n -t "$file" -l "results/$(basename "$file" .jmx).jtl" -e -o "results/$(basename "$file" .jmx)"
+              base_name=$(basename "$file" .jmx | tr -s '[:space:]' '_' | tr -d '[:punct:]')
+              ./jmeter/bin/jmeter -n -t "$file" -l "results/${base_name}.jtl" -e -o "results/${base_name}"
             fi
           done
         continue-on-error: true
@@ -85,11 +89,15 @@ jobs:
           tar -xzf apache-jmeter-5.6.3.tgz
           mv apache-jmeter-5.6.3 jmeter
 
+      - name: Create results directory
+        run: mkdir -p results
+
       - name: Run JMeter Tests
         run: |
           for file in config_element/*.jmx; do
             if [ -f "$file" ]; then
-              ./jmeter/bin/jmeter -n -t "$file" -l "results/$(basename "$file" .jmx).jtl" -e -o "results/$(basename "$file" .jmx)"
+              base_name=$(basename "$file" .jmx | tr -s '[:space:]' '_' | tr -d '[:punct:]')
+              ./jmeter/bin/jmeter -n -t "$file" -l "results/${base_name}.jtl" -e -o "results/${base_name}"
             fi
           done
         continue-on-error: true
@@ -120,11 +128,15 @@ jobs:
           tar -xzf apache-jmeter-5.6.3.tgz
           mv apache-jmeter-5.6.3 jmeter
 
+      - name: Create results directory
+        run: mkdir -p results
+
       - name: Run JMeter Tests
         run: |
           for file in summary_report/*.jmx; do
             if [ -f "$file" ]; then
-              ./jmeter/bin/jmeter -n -t "$file" -l "results/$(basename "$file" .jmx).jtl" -e -o "results/$(basename "$file" .jmx)"
+              base_name=$(basename "$file" .jmx | tr -s '[:space:]' '_' | tr -d '[:punct:]')
+              ./jmeter/bin/jmeter -n -t "$file" -l "results/${base_name}.jtl" -e -o "results/${base_name}"
             fi
           done
         continue-on-error: true
@@ -155,11 +167,15 @@ jobs:
           tar -xzf apache-jmeter-5.6.3.tgz
           mv apache-jmeter-5.6.3 jmeter
 
+      - name: Create results directory
+        run: mkdir -p results
+
       - name: Run JMeter Tests
         run: |
           for file in view_results/*.jmx; do
             if [ -f "$file" ]; then
-              ./jmeter/bin/jmeter -n -t "$file" -l "results/$(basename "$file" .jmx).jtl" -e -o "results/$(basename "$file" .jmx)"
+              base_name=$(basename "$file" .jmx | tr -s '[:space:]' '_' | tr -d '[:punct:]')
+              ./jmeter/bin/jmeter -n -t "$file" -l "results/${base_name}.jtl" -e -o "results/${base_name}"
             fi
           done
         continue-on-error: true
@@ -190,11 +206,15 @@ jobs:
           tar -xzf apache-jmeter-5.6.3.tgz
           mv apache-jmeter-5.6.3 jmeter
 
+      - name: Create results directory
+        run: mkdir -p results
+
       - name: Run JMeter Tests
         run: |
           for file in commonUsedElement/*.jmx; do
             if [ -f "$file" ]; then
-              ./jmeter/bin/jmeter -n -t "$file" -l "results/$(basename "$file" .jmx).jtl" -e -o "results/$(basename "$file" .jmx)"
+              base_name=$(basename "$file" .jmx | tr -s '[:space:]' '_' | tr -d '[:punct:]')
+              ./jmeter/bin/jmeter -n -t "$file" -l "results/${base_name}.jtl" -e -o "results/${base_name}"
             fi
           done
         continue-on-error: true
