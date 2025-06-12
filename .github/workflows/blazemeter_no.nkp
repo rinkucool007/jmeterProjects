@@ -1,0 +1,265 @@
+name: BlazeMeter Test Pipeline
+
+on:
+  push:
+    paths:
+      - 'http_request/**'
+      - 'config_element/**'
+      - 'summary_report/**'
+      - 'view_results/**'
+      - 'commonUsedElement/**'
+  pull_request:
+    paths:
+      - 'http_request/**'
+      - 'config_element/**'
+      - 'summary_report/**'
+      - 'view_results/**'
+      - 'commonUsedElement/**'
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      http_request: ${{ steps.set-outputs.outputs.http_request }}
+      config_element: ${{ steps.set-outputs.outputs.config_element }}
+      summary_report: ${{ steps.set-outputs.outputs.summary_report }}
+      view_results: ${{ steps.set-outputs.outputs.view_results }}
+      commonUsedElement: ${{ steps.set-outputs.outputs.commonUsedElement }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # Fetch the current and previous commit to compare changes
+
+      - name: Detect changed files
+        id: set-outputs
+        run: |
+          # Initialize output variables
+          http_request=false
+          config_element=false
+          summary_report=false
+          view_results=false
+          commonUsedElement=false
+
+          # Get changed files for push or pull_request
+          if [ "${{ github.event_name }}" = "push" ]; then
+            CHANGED_FILES=$(git diff --name-only HEAD^ HEAD)
+          else
+            CHANGED_FILES=$(git diff --name-only HEAD^ HEAD)
+          fi
+
+          # Check if changed files belong to specific folders
+          for file in $CHANGED_FILES; do
+            if [[ "$file" == http_request/* ]]; then
+              http_request=true
+            fi
+            if [[ "$file" == config_element/* ]]; then
+              config_element=true
+            fi
+            if [[ "$file" == summary_report/* ]]; then
+              summary_report=true
+            fi
+            if [[ "$file" == view_results/* ]]; then
+              view_results=true
+            fi
+            if [[ "$file" == commonUsedElement/* ]]; then
+              commonUsedElement=true
+            fi
+          done
+
+          # Set outputs
+          echo "http_request=$http_request" >> $GITHUB_OUTPUT
+          echo "config_element=$config_element" >> $GITHUB_OUTPUT
+          echo "summary_report=$summary_report" >> $GITHUB_OUTPUT
+          echo "view_results=$view_results" >> $GITHUB_OUTPUT
+          echo "commonUsedElement=$commonUsedElement" >> $GITHUB_OUTPUT
+
+  http_request_tests:
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.http_request == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install BlazeMeter CLI (bzt)
+        run: pip install bzt
+
+      - name: Create results directory
+        run: mkdir -p results
+
+      - name: Run BlazeMeter Tests
+        env:
+          BLAZEMETER_API_KEY: ${{ secrets.BLAZEMETER_API_KEY }}
+          BLAZEMETER_API_SECRET: ${{ secrets.BLAZEMETER_API_SECRET }}
+        run: |
+          for file in http_request/*.jmx; do
+            if [ -f "$file" ]; then
+              base_name=$(basename "$file" .jmx | tr -s '[:space:]' '_' | tr -d '[:punct:]')
+              bzt "$file" -o modules.blazemeter.token="$BLAZEMETER_API_KEY:$BLAZEMETER_API_SECRET" -o modules.blazemeter.report-name="${base_name}" -o modules.blazemeter.test="${base_name}" -report -o artifacts-dir="results/${base_name}"
+            fi
+          done
+        continue-on-error: true
+
+      - name: Archive Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: http_request_test_results
+          path: results/
+
+  config_element_tests:
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.config_element == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install BlazeMeter CLI (bzt)
+        run: pip install bzt
+
+      - name: Create results directory
+        run: mkdir -p results
+
+      - name: Run BlazeMeter Tests
+        env:
+          BLAZEMETER_API_KEY: ${{ secrets.BLAZEMETER_API_KEY }}
+          BLAZEMETER_API_SECRET: ${{ secrets.BLAZEMETER_API_SECRET }}
+        run: |
+          for file in config_element/*.jmx; do
+            if [ -f "$file" ]; then
+              base_name=$(basename "$file" .jmx | tr -s '[:space:]' '_' | tr -d '[:punct:]')
+              bzt "$file" -o modules.blazemeter.token="$BLAZEMETER_API_KEY:$BLAZEMETER_API_SECRET" -o modules.blazemeter.report-name="${base_name}" -o modules.blazemeter.test="${base_name}" -report -o artifacts-dir="results/${base_name}"
+            fi
+          done
+        continue-on-error: true
+
+      - name: Archive Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: config_element_test_results
+          path: results/
+
+  summary_report_tests:
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.summary_report == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install BlazeMeter CLI (bzt)
+        run: pip install bzt
+
+      - name: Create results directory
+        run: mkdir -p results
+
+      - name: Run BlazeMeter Tests
+        env:
+          BLAZEMETER_API_KEY: ${{ secrets.BLAZEMETER_API_KEY }}
+          BLAZEMETER_API_SECRET: ${{ secrets.BLAZEMETER_API_SECRET }}
+        run: |
+          for file in summary_report/*.jmx; do
+            if [ -f "$file" ]; then
+              base_name=$(basename "$file" .jmx | tr -s '[:space:]' '_' | tr -d '[:punct:]')
+              bzt "$file" -o modules.blazemeter.token="$BLAZEMETER_API_KEY:$BLAZEMETER_API_SECRET" -o modules.blazemeter.report-name="${base_name}" -o modules.blazemeter.test="${base_name}" -report -o artifacts-dir="results/${base_name}"
+            fi
+          done
+        continue-on-error: true
+
+      - name: Archive Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: summary_report_test_results
+          path: results/
+
+  view_results_tests:
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.view_results == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install BlazeMeter CLI (bzt)
+        run: pip install bzt
+
+      - name: Create results directory
+        run: mkdir -p results
+
+      - name: Run BlazeMeter Tests
+        env:
+          BLAZEMETER_API_KEY: ${{ secrets.BLAZEMETER_API_KEY }}
+          BLAZEMETER_API_SECRET: ${{ secrets.BLAZEMETER_API_SECRET }}
+        run: |
+          for file in view_results/*.jmx; do
+            if [ -f "$file" ]; then
+              base_name=$(basename "$file" .jmx | tr -s '[:space:]' '_' | tr -d '[:punct:]')
+              bzt "$file" -o modules.blazemeter.token="$BLAZEMETER_API_KEY:$BLAZEMETER_API_SECRET" -o modules.blazemeter.report-name="${base_name}" -o modules.blazemeter.test="${base_name}" -report -o artifacts-dir="results/${base_name}"
+            fi
+          done
+        continue-on-error: true
+
+      - name: Archive Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: view_results_test_results
+          path: results/
+
+  commonUsedElement_tests:
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.commonUsedElement == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install BlazeMeter CLI (bzt)
+        run: pip install bzt
+
+      - name: Create results directory
+        run: mkdir -p results
+
+      - name: Run BlazeMeter Tests
+        env:
+          BLAZEMETER_API_KEY: ${{ secrets.BLAZEMETER_API_KEY }}
+          BLAZEMETER_API_SECRET: ${{ secrets.BLAZEMETER_API_SECRET }}
+        run: |
+          for file in commonUsedElement/*.jmx; do
+            if [ -f "$file" ]; then
+              base_name=$(basename "$file" .jmx | tr -s '[:space:]' '_' | tr -d '[:punct:]')
+              bzt "$file" -o modules.blazemeter.token="$BLAZEMETER_API_KEY:$BLAZEMETER_API_SECRET" -o modules.blazemeter.report-name="${base_name}" -o modules.blazemeter.test="${base_name}" -report -o artifacts-dir="results/${base_name}"
+            fi
+          done
+        continue-on-error: true
+
+      - name: Archive Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: commonUsedElement_test_results
+          path: results/
