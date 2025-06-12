@@ -10,9 +10,30 @@ on:
       - 'commonUsedElement/**'
 
 jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      http_request: ${{ steps.filter.outputs.http_request }}
+      config_element: ${{ steps.filter.outputs.config_element }}
+      summary_report: ${{ steps.filter.outputs.summary_report }}
+      view_results: ${{ steps.filter.outputs.view_results }}
+      commonUsedElement: ${{ steps.filter.outputs.commonUsedElement }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            http_request: http_request/**
+            config_element: config_element/**
+            summary_report: summary_report/**
+            view_results: view_results/**
+            commonUsedElement: commonUsedElement/**
+
   http_request_tests:
     runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.message, 'http_request') || github.event_name == 'pull_request' && github.event.pull_request.changed_files[0] =~ 'http_request/'
+    needs: detect-changes
+    if: needs.detect-changes.outputs.http_request == 'true'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -46,7 +67,8 @@ jobs:
 
   config_element_tests:
     runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.message, 'config_element') || github.event_name == 'pull_request' && github.event.pull_request.changed_files[0] =~ 'config_element/'
+    needs: detect-changes
+    if: needs.detect-changes.outputs.config_element == 'true'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -80,7 +102,8 @@ jobs:
 
   summary_report_tests:
     runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.message, 'summary_report') || github.event_name == 'pull_request' && github.event.pull_request.changed_files[0] =~ 'summary_report/'
+    needs: detect-changes
+    if: needs.detect-changes.outputs.summary_report == 'true'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -114,7 +137,8 @@ jobs:
 
   view_results_tests:
     runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.message, 'view_results') || github.event_name == 'pull_request' && github.event.pull_request.changed_files[0] =~ 'view_results/'
+    needs: detect-changes
+    if: needs.detect-changes.outputs.view_results == 'true'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -148,7 +172,8 @@ jobs:
 
   commonUsedElement_tests:
     runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.message, 'commonUsedElement') || github.event_name == 'pull_request' && github.event.pull_request.changed_files[0] =~ 'commonUsedElement/'
+    needs: detect-changes
+    if: needs.detect-changes.outputs.commonUsedElement == 'true'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
