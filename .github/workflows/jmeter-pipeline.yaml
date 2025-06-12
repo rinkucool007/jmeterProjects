@@ -1,0 +1,181 @@
+name: JMeter Test Pipeline
+
+on:
+  push:
+    paths:
+      - 'http_request/**'
+      - 'config_element/**'
+      - 'summary_report/**'
+      - 'view_results/**'
+      - 'commonUsedElement/**'
+
+jobs:
+  http_request_tests:
+    runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.message, 'http_request') || github.event_name == 'pull_request' && github.event.pull_request.changed_files[0] =~ 'http_request/'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+
+      - name: Download JMeter
+        run: |
+          wget https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.6.3.tgz
+          tar -xzf apache-jmeter-5.6.3.tgz
+          mv apache-jmeter-5.6.3 jmeter
+
+      - name: Run JMeter Tests
+        run: |
+          for file in http_request/*.jmx; do
+            if [ -f "$file" ]; then
+              ./jmeter/bin/jmeter -n -t "$file" -l "results/$(basename "$file" .jmx).jtl" -e -o "results/$(basename "$file" .jmx)"
+            fi
+          done
+        continue-on-error: true
+
+      - name: Archive Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: http_request_test_results
+          path: results/
+
+  config_element_tests:
+    runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.message, 'config_element') || github.event_name == 'pull_request' && github.event.pull_request.changed_files[0] =~ 'config_element/'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+
+      - name: Download JMeter
+        run: |
+          wget https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.6.3.tgz
+          tar -xzf apache-jmeter-5.6.3.tgz
+          mv apache-jmeter-5.6.3 jmeter
+
+      - name: Run JMeter Tests
+        run: |
+          for file in config_element/*.jmx; do
+            if [ -f "$file" ]; then
+              ./jmeter/bin/jmeter -n -t "$file" -l "results/$(basename "$file" .jmx).jtl" -e -o "results/$(basename "$file" .jmx)"
+            fi
+          done
+        continue-on-error: true
+
+      - name: Archive Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: config_element_test_results
+          path: results/
+
+  summary_report_tests:
+    runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.message, 'summary_report') || github.event_name == 'pull_request' && github.event.pull_request.changed_files[0] =~ 'summary_report/'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+
+      - name: Download JMeter
+        run: |
+          wget https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.6.3.tgz
+          tar -xzf apache-jmeter-5.6.3.tgz
+          mv apache-jmeter-5.6.3 jmeter
+
+      - name: Run JMeter Tests
+        run: |
+          for file in summary_report/*.jmx; do
+            if [ -f "$file" ]; then
+              ./jmeter/bin/jmeter -n -t "$file" -l "results/$(basename "$file" .jmx).jtl" -e -o "results/$(basename "$file" .jmx)"
+            fi
+          done
+        continue-on-error: true
+
+      - name: Archive Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: summary_report_test_results
+          path: results/
+
+  view_results_tests:
+    runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.message, 'view_results') || github.event_name == 'pull_request' && github.event.pull_request.changed_files[0] =~ 'view_results/'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+
+      - name: Download JMeter
+        run: |
+          wget https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.6.3.tgz
+          tar -xzf apache-jmeter-5.6.3.tgz
+          mv apache-jmeter-5.6.3 jmeter
+
+      - name: Run JMeter Tests
+        run: |
+          for file in view_results/*.jmx; do
+            if [ -f "$file" ]; then
+              ./jmeter/bin/jmeter -n -t "$file" -l "results/$(basename "$file" .jmx).jtl" -e -o "results/$(basename "$file" .jmx)"
+            fi
+          done
+        continue-on-error: true
+
+      - name: Archive Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: view_results_test_results
+          path: results/
+
+  commonUsedElement_tests:
+    runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.message, 'commonUsedElement') || github.event_name == 'pull_request' && github.event.pull_request.changed_files[0] =~ 'commonUsedElement/'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+
+      - name: Download JMeter
+        run: |
+          wget https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.6.3.tgz
+          tar -xzf apache-jmeter-5.6.3.tgz
+          mv apache-jmeter-5.6.3 jmeter
+
+      - name: Run JMeter Tests
+        run: |
+          for file in commonUsedElement/*.jmx; do
+            if [ -f "$file" ]; then
+              ./jmeter/bin/jmeter -n -t "$file" -l "results/$(basename "$file" .jmx).jtl" -e -o "results/$(basename "$file" .jmx)"
+            fi
+          done
+        continue-on-error: true
+
+      - name: Archive Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: commonUsedElement_test_results
+          path: results/
