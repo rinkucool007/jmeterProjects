@@ -13,59 +13,22 @@ jobs:
   detect-changes:
     runs-on: ubuntu-latest
     outputs:
-      http_request: ${{ steps.set-outputs.outputs.http_request }}
-      config_element: ${{ steps.set-outputs.outputs.config_element }}
-      summary_report: ${{ steps.set-outputs.outputs.summary_report }}
-      view_results: ${{ steps.set-outputs.outputs.view_results }}
-      commonUsedElement: ${{ steps.set-outputs.outputs.commonUsedElement }}
+      http_request: ${{ steps.filter.outputs.http_request }}
+      config_element: ${{ steps.filter.outputs.config_element }}
+      summary_report: ${{ steps.filter.outputs.summary_report }}
+      view_results: ${{ steps.filter.outputs.view_results }}
+      commonUsedElement: ${{ steps.filter.outputs.commonUsedElement }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
         with:
-          fetch-depth: 2  # Fetch the current and previous commit to compare changes
-
-      - name: Detect changed files
-        id: set-outputs
-        run: |
-          # Initialize output variables
-          http_request=false
-          config_element=false
-          summary_report=false
-          view_results=false
-          commonUsedElement=false
-
-          # Get changed files for push or pull_request
-          if [ "${{ github.event_name }}" = "push" ]; then
-            CHANGED_FILES=$(git diff --name-only HEAD^ HEAD)
-          else
-            CHANGED_FILES=$(git diff --name-only HEAD^ HEAD)
-          fi
-
-          # Check if changed files belong to specific folders
-          for file in $CHANGED_FILES; do
-            if [[ "$file" == http_request/* ]]; then
-              http_request=true
-            fi
-            if [[ "$file" == config_element/* ]]; then
-              config_element=true
-            fi
-            if [[ "$file" == summary_report/* ]]; then
-              summary_report=true
-            fi
-            if [[ "$file" == view_results/* ]]; then
-              view_results=true
-            fi
-            if [[ "$file" == commonUsedElement/* ]]; then
-              commonUsedElement=true
-            fi
-          done
-
-          # Set outputs
-          echo "http_request=$http_request" >> $GITHUB_OUTPUT
-          echo "config_element=$config_element" >> $GITHUB_OUTPUT
-          echo "summary_report=$summary_report" >> $GITHUB_OUTPUT
-          echo "view_results=$view_results" >> $GITHUB_OUTPUT
-          echo "commonUsedElement=$commonUsedElement" >> $GITHUB_OUTPUT
+          filters: |
+            http_request: http_request/**
+            config_element: config_element/**
+            summary_report: summary_report/**
+            view_results: view_results/**
+            commonUsedElement: commonUsedElement/**
 
   http_request_tests:
     runs-on: ubuntu-latest
@@ -212,7 +175,7 @@ jobs:
           for file in view_results/*.jmx; do
             if [ -f "$file" ]; then
               base_name=$(basename "$file" .jmx | tr -s '[:space:]' '_' | tr -d '[:punct:]')
-              ./jmeter/bin/jmeter -n t "$file" -l "results/${base_name}.jtl" -e -o "results/${base_name}"
+              ./jmeter/bin/jmeter -n -t "$file" -l "results/${base_name}.jtl" -e -o "results/${base_name}"
             fi
           done
         continue-on-error: true
